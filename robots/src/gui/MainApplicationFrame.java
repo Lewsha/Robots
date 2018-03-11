@@ -3,6 +3,8 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -13,6 +15,8 @@ import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 
 import log.Logger;
 
@@ -36,9 +40,8 @@ public class MainApplicationFrame extends JFrame
             screenSize.height - inset*2);
 
         setContentPane(desktopPane);
-        
-        
-        LogWindow logWindow = createLogWindow();
+		
+		LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
         GameWindow gameWindow = new GameWindow();
@@ -46,7 +49,18 @@ public class MainApplicationFrame extends JFrame
         addWindow(gameWindow);
 
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+		
+		UIManager.put("OptionPane.yesButtonText", "Да");
+        UIManager.put("OptionPane.noButtonText", "Нет");
+		
+		addWindowListener(new WindowAdapter() 
+		{
+            @Override
+            public void windowClosing(WindowEvent e) {
+                MainApplicationFrame.this.doClose();
+            }
+        });
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
     
     protected LogWindow createLogWindow()
@@ -98,6 +112,17 @@ public class MainApplicationFrame extends JFrame
     private JMenuBar generateMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
+		
+		JMenu actionMenu = new JMenu("Действия");
+        actionMenu.setMnemonic(KeyEvent.VK_Q);
+        actionMenu.getAccessibleContext().setAccessibleDescription(
+                "Возможные действия.");
+
+        {
+            JMenuItem exitMenu = new JMenuItem("Выход");
+            exitMenu.addActionListener((event) -> doClose());
+            actionMenu.add(exitMenu);
+        }
         
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
@@ -135,22 +160,35 @@ public class MainApplicationFrame extends JFrame
             testMenu.add(addLogMessageItem);
         }
 
+        menuBar.add(actionMenu);
         menuBar.add(lookAndFeelMenu);
         menuBar.add(testMenu);
         return menuBar;
     }
     
     private void setLookAndFeel(String className)
-    {
-        try
-        {
+	{
+        try{
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
-        }
+			}
         catch (ClassNotFoundException | InstantiationException
             | IllegalAccessException | UnsupportedLookAndFeelException e)
         {
             // just ignore
+        }
+    }
+	
+	private void doClose(){
+        int i = JOptionPane.showConfirmDialog(MainApplicationFrame.this,
+                "Выйти из программы?",
+                "Запрос подтвеждения",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+        if (i == 0) {
+            MainApplicationFrame.this.setVisible(false);
+            MainApplicationFrame.this.dispose();
+            System.exit(0);
         }
     }
 }
