@@ -52,12 +52,25 @@ public class MainApplicationFrame extends JFrame
 		
 		UIManager.put("OptionPane.yesButtonText", "Да");
         UIManager.put("OptionPane.noButtonText", "Нет");
-		
-		addWindowListener(new WindowAdapter() 
-		{
+
+        addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                MainApplicationFrame.this.doClose();
+                int i = JOptionPane.showConfirmDialog(null,
+                        "Выйти из программы?",
+                        "Запрос подтвержения",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (i == JOptionPane.YES_OPTION) {
+                    MainApplicationFrame.this.setVisible(false);
+                    MainApplicationFrame.this.dispose();
+                    windowClosed(e);
+                }
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                System.exit(0);
             }
         });
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -120,7 +133,7 @@ public class MainApplicationFrame extends JFrame
 
         {
             JMenuItem exitMenu = new JMenuItem("Выход");
-            exitMenu.addActionListener((event) -> doClose());
+            exitMenu.addActionListener((event) -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
             actionMenu.add(exitMenu);
         }
         
@@ -176,19 +189,6 @@ public class MainApplicationFrame extends JFrame
             | IllegalAccessException | UnsupportedLookAndFeelException e)
         {
             // just ignore
-        }
-    }
-	
-	private void doClose(){
-        int i = JOptionPane.showConfirmDialog(MainApplicationFrame.this,
-                "Выйти из программы?",
-                "Запрос подтвеждения",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
-        if (i == 0) {
-            MainApplicationFrame.this.setVisible(false);
-            MainApplicationFrame.this.dispose();
-            System.exit(0);
         }
     }
 }
